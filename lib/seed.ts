@@ -134,4 +134,19 @@ export const SEED_KB: KBEntry[] = [
     source: "Parent Handbook → Technology",
     action: { label: "Open Brightwheel Help", href: "https://help.mybrightwheel.com" },
   },
+  {
+    id: "curriculum",
+    category: "Programs",
+    title: "Programs, curriculum & what your child learns",
+    body: "Flourishing Flowers offers infant, toddler, preschool, and Pre-K programs. Our play-based curriculum nurtures early literacy, numbers, social-emotional skills, creativity, and motor development through daily circle time, art, music, story time, outdoor play, and hands-on exploration. Each classroom shares its weekly activity plan in the Brightwheel app. For a full overview or to see a classroom in action, we'd love for you to schedule a tour.",
+    source: "Parent Handbook → Programs",
+    action: { label: "Schedule a tour", href: "/example" },
+  },
+  {
+    id: "help-topics",
+    category: "General",
+    title: "What you can ask Poppy",
+    body: "I can help with hours and closures, tuition and fees, meals, what to bring, naps, illness and medication policies, our programs and curriculum, scheduling a tour, enrollment, the Brightwheel app, and how to reach the center. For anything about your specific child's health, safety, or care, I'll connect you with a staff member.",
+    source: "Front Desk",
+  },
 ];

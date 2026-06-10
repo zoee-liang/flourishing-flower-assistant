@@ -106,14 +106,14 @@ export default function ParentPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col">
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col overflow-x-hidden">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/90 px-5 py-3 backdrop-blur">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">{CENTER.name}</div>
-            <div className="text-xs text-neutral-500">Chat with {ASSISTANT_NAME} · {CENTER.hoursLine}</div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold">{CENTER.name}</div>
+            <div className="truncate text-xs text-neutral-500">Chat with {ASSISTANT_NAME} · {CENTER.hoursLine}</div>
           </div>
-          <Link href="/" className="text-xs font-medium text-brand hover:underline">Home</Link>
+          <Link href="/" className="shrink-0 text-xs font-medium text-brand hover:underline">Home</Link>
         </div>
       </header>
 
@@ -265,9 +265,9 @@ export default function ParentPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask the front desk…"
-            className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-[15px] outline-none focus:border-brand"
+            className="min-w-0 flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-[15px] outline-none focus:border-brand"
           />
-          <button disabled={busy || !input.trim()} className="rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white disabled:opacity-40">
+          <button disabled={busy || !input.trim()} className="shrink-0 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white disabled:opacity-40">
             Send
           </button>
         </div>

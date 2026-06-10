@@ -44,7 +44,7 @@ type Ctx = {
 };
 
 const DeskContext = createContext<Ctx | null>(null);
-const KB_KEY = "fd_kb_v2"; // bump when the seed KB schema/content changes so stale cached copies are dropped
+const KB_KEY = "fd_kb_v3"; // bump when the seed KB schema/content changes so stale cached copies are dropped
 const LOG_KEY = "fd_log_v3";
 
 export function DeskProvider({ children }: { children: React.ReactNode }) {
