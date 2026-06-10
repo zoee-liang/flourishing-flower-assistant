@@ -1,12 +1,11 @@
 # AI Front Desk — "knows when to get a human"
 
 A proof-of-concept AI front desk for a daycare (fictional *Flourishing Flowers Daycare Center*,
-assistant named *Poppy*), built for the Brightwheel exercise. Policies are grounded in the public
-Albuquerque DCFD Family Handbook.
+assistant named *Poppy*). Policies are grounded in the public Albuquerque DCFD Family Handbook.
 
 ## White-label / customer-implementable
-This is built as a **shared, configurable building block** — Brightwheel could template it and let
-each center make it their own. Everything that makes it "theirs" lives in **one file,
+This is built as a **shared, configurable building block**. It can be templatized, allowing
+each center to make it their own. Everything that makes it "theirs" lives in **one file, 
 [`lib/config.ts`](lib/config.ts)**:
 
 - **Assistant** — name, greeting, and a `persona` string that steers the AI's tone/voice
@@ -59,4 +58,4 @@ Routes: `/` (overview) · `/parent` (front desk) · `/operator` (control center)
 
 ## Scope (deliberately cut for a POC)
 No auth, one center, text only, in-browser state instead of a database, no PDF ingestion.
-The point is the trust model and the loop, not infrastructure.
+The point is the trust model and the loop, not a production-grade AI assistant.
