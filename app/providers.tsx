@@ -19,6 +19,9 @@ type AskLog = {
   feedback?: "up" | "down"; // parent's thumbs up / down on the answer
   humanRequested?: boolean; // parent opted in to reach a person
   contact?: Contact; // collected when the parent connects to staff
+  costUsd?: number; // estimated LLM cost for this interaction
+  inputTokens?: number;
+  outputTokens?: number;
 };
 
 type Ctx = {
@@ -40,6 +43,9 @@ type Ctx = {
     thumbsUp: number;
     thumbsDown: number;
     humanRequests: number;
+    totalCostUsd: number;
+    avgCostUsd: number;
+    totalTokens: number;
   };
 };
 
@@ -96,6 +102,9 @@ export function DeskProvider({ children }: { children: React.ReactNode }) {
         intent: r.intent,
         confidence: r.confidence,
         guardReason: r.guardReason,
+        costUsd: r.costUsd,
+        inputTokens: r.inputTokens,
+        outputTokens: r.outputTokens,
         at: Date.now(),
       },
       ...prev,
@@ -118,6 +127,8 @@ export function DeskProvider({ children }: { children: React.ReactNode }) {
     const total = log.length;
     const escalated = log.filter((x) => x.escalated).length;
     const answered = total - escalated;
+    const totalCostUsd = log.reduce((s, x) => s + (x.costUsd || 0), 0);
+    const totalTokens = log.reduce((s, x) => s + (x.inputTokens || 0) + (x.outputTokens || 0), 0);
     return {
       total,
       answered,
@@ -126,6 +137,9 @@ export function DeskProvider({ children }: { children: React.ReactNode }) {
       thumbsUp: log.filter((x) => x.feedback === "up").length,
       thumbsDown: log.filter((x) => x.feedback === "down").length,
       humanRequests: log.filter((x) => x.humanRequested).length, // ACTUAL connections only
+      totalCostUsd,
+      avgCostUsd: total ? totalCostUsd / total : 0,
+      totalTokens,
     };
   }, [log]);
 

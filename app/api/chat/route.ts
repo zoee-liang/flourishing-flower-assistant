@@ -9,6 +9,19 @@ export const runtime = "nodejs";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
 
+// $ per 1M tokens (Claude Haiku 4.5). Approximate; update if you change models.
+const PRICE = { in: 1.0, out: 5.0, cacheRead: 0.1, cacheWrite: 1.25 };
+
+function costFromUsage(u: { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number } | null | undefined) {
+  if (!u) return { costUsd: 0, inputTokens: 0, outputTokens: 0 };
+  const inp = u.input_tokens ?? 0;
+  const out = u.output_tokens ?? 0;
+  const cr = u.cache_read_input_tokens ?? 0;
+  const cw = u.cache_creation_input_tokens ?? 0;
+  const costUsd = (inp * PRICE.in + out * PRICE.out + cr * PRICE.cacheRead + cw * PRICE.cacheWrite) / 1_000_000;
+  return { costUsd, inputTokens: inp + cr + cw, outputTokens: out };
+}
+
 function buildSystemPrompt(kb: KBEntry[]): string {
   const kbText = kb
     .map((e) => `[${e.id}] (${e.category}) ${e.title}\n${e.body}\nSource: ${e.source}`)
@@ -88,6 +101,7 @@ export async function POST(req: NextRequest) {
   }
 
   let verdict: ModelVerdict;
+  let cost = { costUsd: 0, inputTokens: 0, outputTokens: 0 };
   const key = process.env.ANTHROPIC_API_KEY;
 
   if (key) {
@@ -112,6 +126,7 @@ export async function POST(req: NextRequest) {
       const textBlock = msg.content.find((b) => b.type === "text");
       const raw = textBlock && textBlock.type === "text" ? textBlock.text : "";
       verdict = parseVerdict(raw) ?? fallbackVerdict(question, knowledge);
+      cost = costFromUsage(msg.usage as any);
     } catch (e) {
       verdict = fallbackVerdict(question, knowledge);
     }
@@ -134,11 +149,21 @@ export async function POST(req: NextRequest) {
       citations: response.citations.map((c) => c.id),
       modelUsed: !!key,
       latencyMs: Date.now() - t0,
+      costUsd: cost.costUsd,
+      inputTokens: cost.inputTokens,
+      outputTokens: cost.outputTokens,
       question: question.slice(0, 160),
       answer: response.answer.slice(0, 280),
       at: new Date().toISOString(),
     })
   );
 
-  return NextResponse.json({ ...response, summary, modelUsed: !!key });
+  return NextResponse.json({
+    ...response,
+    summary,
+    costUsd: cost.costUsd,
+    inputTokens: cost.inputTokens,
+    outputTokens: cost.outputTokens,
+    modelUsed: !!key,
+  });
 }

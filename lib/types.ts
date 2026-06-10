@@ -43,6 +43,10 @@ export type DeskResponse = {
   guardReason: string | null; // why the server overrode/clamped, if it did
   offerConnect?: boolean; // true when the message ends by offering to connect to staff (parent must opt in)
   summary?: string; // staff-facing one-liner for the operator queue
+  // operational metadata (cost monitoring)
+  costUsd?: number;
+  inputTokens?: number;
+  outputTokens?: number;
 };
 
 export type StruggledItem = {

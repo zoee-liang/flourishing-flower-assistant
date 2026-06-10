@@ -10,7 +10,7 @@ import { KBEntry } from "@/lib/types";
 const MIN_PER_AUTO = CONFIG.settings.minutesSavedPerAnswer; // est. staff minutes saved per resolved question
 const URGENCY_LABEL: Record<string, string> = { low: "Not urgent", normal: "Sometime soon", high: "Urgent" };
 const NAV = [
-  { id: "dashboard", label: "Dashboard", icon: "📊" },
+  { id: "dashboard", label: "Overview", icon: "📊" },
   { id: "policies", label: "Policies", icon: "📄" },
   { id: "archived", label: "Archived", icon: "🗂️" },
   { id: "support", label: "Brightwheel Support", icon: "🛟" },
@@ -87,6 +87,37 @@ export default function OperatorPage() {
     setDraft(null);
   }
 
+  // Export every interaction as newline-delimited JSON (NDJSON) — the warehouse-
+  // friendly shape a data pipeline would land in a `fact_interaction` table.
+  function exportData() {
+    const rows = log.map((x) =>
+      JSON.stringify({
+        event_at: new Date(x.at).toISOString(),
+        question: x.question,
+        answer: x.answer,
+        summary: x.summary ?? null,
+        tier: x.tier,
+        escalated: x.escalated,
+        intent: x.intent,
+        confidence: x.confidence,
+        guard_reason: x.guardReason ?? null,
+        feedback: x.feedback ?? null,
+        human_requested: !!x.humanRequested,
+        urgency: x.contact?.urgency ?? null,
+        cost_usd: x.costUsd ?? 0,
+        input_tokens: x.inputTokens ?? 0,
+        output_tokens: x.outputTokens ?? 0,
+      })
+    );
+    const blob = new Blob([rows.join("\n")], { type: "application/x-ndjson" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `interactions-${new Date().toISOString().slice(0, 10)}.ndjson`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const navTitle = NAV.find((n) => n.id === nav)?.label ?? "";
 
   return (
@@ -128,6 +159,7 @@ export default function OperatorPage() {
           </div>
           <div className="flex items-center gap-3 text-xs">
             <Link href="/parent" className="font-medium text-brand hover:underline">Parent view</Link>
+            <button onClick={exportData} className="text-neutral-500 hover:text-brand">⬇ Export</button>
             <button onClick={resetKb} className="text-neutral-400 hover:text-rose-500">Reset demo</button>
           </div>
         </header>
@@ -205,6 +237,30 @@ export default function OperatorPage() {
                   <Bar label="Needed a person" value={stats.escalated} total={stats.total} color="bg-rose-400" />
                 </div>
               </div>
+            </div>
+
+            {/* Cost monitoring */}
+            <div className="rounded-xl border border-neutral-200 bg-white p-5">
+              <div className="text-sm font-semibold">AI cost (estimated)</div>
+              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div>
+                  <div className="text-xl font-semibold">${stats.totalCostUsd.toFixed(4)}</div>
+                  <div className="text-xs text-neutral-500">total</div>
+                </div>
+                <div>
+                  <div className="text-xl font-semibold">${stats.avgCostUsd.toFixed(4)}</div>
+                  <div className="text-xs text-neutral-500">avg / query</div>
+                </div>
+                <div>
+                  <div className="text-xl font-semibold">${(stats.avgCostUsd * 1000).toFixed(2)}</div>
+                  <div className="text-xs text-neutral-500">per 1,000 queries</div>
+                </div>
+                <div>
+                  <div className="text-xl font-semibold">{stats.totalTokens.toLocaleString()}</div>
+                  <div className="text-xs text-neutral-500">tokens</div>
+                </div>
+              </div>
+              <div className="mt-2 text-[11px] text-neutral-400">claude-haiku-4-5 · ~$1 / $5 per 1M tokens (in/out) · prompt caching enabled</div>
             </div>
 
             {/* Negative feedback to review */}
