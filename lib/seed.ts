@@ -1,19 +1,14 @@
+import { CONFIG } from "./config";
 import { Center, KBEntry } from "./types";
 
-// Fictional center. Policies are grounded in / inspired by the public
-// Albuquerque DCFD Family Handbook (illness, medication, hours, meals, naps),
-// with invented specifics where the public doc is income-based or vague
-// (tuition, holiday calendar, late fees, tours).
-export const ASSISTANT_NAME = "Poppy";
+// Assistant name + center details come from the white-label config (lib/config.ts).
+// These re-exports keep the rest of the app importing from one place.
+export const ASSISTANT_NAME: string = CONFIG.assistant.name;
+export const CENTER: Center = CONFIG.center;
 
-export const CENTER: Center = {
-  name: "Flourishing Flowers Daycare Center",
-  director: "Ms. Elena Rivera",
-  phone: "(505) 555-0142",
-  email: "frontdesk@flourishingflowers.example",
-  hoursLine: "Mon–Fri, 7:00 AM – 5:30 PM",
-};
-
+// The center's policies / handbook. A customer customizes these here (or live
+// from Operator → Policies). Bodies reference the center by name — update them
+// to match if you change the center in the config.
 export const SEED_KB: KBEntry[] = [
   {
     id: "hours",

@@ -4,9 +4,10 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useDesk, AskLog } from "../providers";
 import { CENTER } from "@/lib/seed";
+import { CONFIG } from "@/lib/config";
 import { KBEntry } from "@/lib/types";
 
-const MIN_PER_AUTO = 6; // est. staff minutes saved per question the bot resolves
+const MIN_PER_AUTO = CONFIG.settings.minutesSavedPerAnswer; // est. staff minutes saved per resolved question
 const URGENCY_LABEL: Record<string, string> = { low: "Not urgent", normal: "Sometime soon", high: "Urgent" };
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },

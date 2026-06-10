@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useDesk } from "../providers";
 import { ASSISTANT_NAME, CENTER } from "@/lib/seed";
+import { CONFIG } from "@/lib/config";
 import { Contact, DeskResponse, KBEntry, Urgency } from "@/lib/types";
 
 type Msg =
@@ -126,9 +127,7 @@ export default function ParentPage() {
       <div className="flex-1 space-y-4 px-5 py-5">
         {msgs.length === 0 && (
           <div className="rounded-2xl bg-white p-4 text-sm text-neutral-600 shadow-sm">
-            Hi there! 👋 I&apos;m {ASSISTANT_NAME}, the front-desk assistant at {CENTER.name}. Ask me anything about hours,
-            tuition, meals, tours, or our policies. For anything about your child&apos;s health or safety, I&apos;ll
-            gladly connect you with a person.
+            {CONFIG.assistant.greeting}
           </div>
         )}
 

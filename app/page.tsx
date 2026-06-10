@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { CENTER } from "@/lib/seed";
+import { CONFIG } from "@/lib/config";
 
 export default function Home() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <div className="mb-2 text-sm font-medium text-brand">AI Front Desk · proof of concept</div>
+      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-brand">
+        <span className="text-lg">{CONFIG.brand.emoji}</span> AI Front Desk · proof of concept
+      </div>
       <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        The front desk that knows when to get a human.
+        {CONFIG.brand.tagline}
       </h1>
       <p className="mt-4 text-lg text-neutral-600">
-        An AI front desk for <strong>{CENTER.name}</strong>. It answers routine parent questions
+        {CONFIG.assistant.name}, an AI front desk for <strong>{CENTER.name}</strong>. It answers routine parent questions
         instantly and with a cited source — and the moment a question touches a child&apos;s health,
         safety, or anything it isn&apos;t sure about, it hands the parent to a real person instead of
         guessing.

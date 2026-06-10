@@ -5,10 +5,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Driven by CSS variables set from the white-label config (lib/config.ts)
+        // via app/layout.tsx, so the brand color is customizable without a rebuild.
         brand: {
-          DEFAULT: "#5b4ef0",
-          dark: "#4a3fd6",
-          soft: "#eef0ff",
+          DEFAULT: "rgb(var(--brand) / <alpha-value>)",
+          soft: "rgb(var(--brand-soft) / <alpha-value>)",
         },
       },
     },

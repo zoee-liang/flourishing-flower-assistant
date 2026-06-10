@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Defaults — overridden per-center from lib/config.ts via app/layout.tsx */
+  --brand: 91 78 240;
+  --brand-soft: 238 240 255;
+}
+
 html,
 body {
   background: #f7f7fb;

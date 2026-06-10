@@ -1,8 +1,24 @@
 # AI Front Desk — "knows when to get a human"
 
-A proof-of-concept AI front desk for a daycare (fictional *Sunny Days Early Learning Center*),
-built for the Brightwheel exercise. Policies are grounded in the public Albuquerque DCFD
-Family Handbook.
+A proof-of-concept AI front desk for a daycare (fictional *Flourishing Flowers Daycare Center*,
+assistant named *Poppy*), built for the Brightwheel exercise. Policies are grounded in the public
+Albuquerque DCFD Family Handbook.
+
+## White-label / customer-implementable
+This is built as a **shared, configurable building block** — Brightwheel could template it and let
+each center make it their own. Everything that makes it "theirs" lives in **one file,
+[`lib/config.ts`](lib/config.ts)**:
+
+- **Assistant** — name, greeting, and a `persona` string that steers the AI's tone/voice
+- **Branding** — primary color + soft tint (drive the whole UI via CSS variables, no rebuild), mascot
+  emoji, tagline
+- **Center** — name, director, phone, email, hours
+- **Settings** — e.g. estimated minutes saved per answer (dashboard metric)
+
+The center's **policies/handbook** are the other half of their customization — seeded in
+[`lib/seed.ts`](lib/seed.ts) and editable live from **Operator → Policies** (the "teach" flow). In a
+multi-tenant deployment, this config + KB would load per-tenant from a database; here it's a single
+static config so a center can fork-and-customize.
 
 ## The idea
 A front desk's job isn't to answer everything — it's to answer the routine perfectly and
