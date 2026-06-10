@@ -119,7 +119,7 @@ export default function ParentPage() {
 
       {/* Persistent disclaimer */}
       <div className="border-b border-amber-200 bg-amber-50 px-5 py-2 text-[11px] leading-snug text-amber-800">
-        ⚠️ I&apos;m {ASSISTANT_NAME}, an AI assistant — I can make mistakes and I&apos;m not a substitute for our staff. In an
+        ⚠️ I&apos;m an AI assistant — I can make mistakes and I&apos;m not a substitute for our staff. In an
         emergency, call 911. Please avoid sharing medical details; I&apos;ll connect you with a person for anything sensitive.
       </div>
 
@@ -127,7 +127,7 @@ export default function ParentPage() {
         {msgs.length === 0 && (
           <div className="rounded-2xl bg-white p-4 text-sm text-neutral-600 shadow-sm">
             Hi there! 👋 I&apos;m {ASSISTANT_NAME}, the front-desk assistant at {CENTER.name}. Ask me anything about hours,
-            tuition, meals, tours, or our policies — and for anything about your child&apos;s health or safety, I&apos;ll
+            tuition, meals, tours, or our policies. For anything about your child&apos;s health or safety, I&apos;ll
             gladly connect you with a person.
           </div>
         )}
@@ -236,7 +236,7 @@ export default function ParentPage() {
             </div>
           );
         })}
-        {busy && <div className="text-sm text-neutral-400">Front desk is thinking…</div>}
+        {busy && <div className="text-sm text-neutral-400">{ASSISTANT_NAME} is thinking…</div>}
         <div ref={endRef} />
       </div>
 

@@ -73,7 +73,7 @@ export const SEED_KB: KBEntry[] = [
     title: "Scheduling a tour",
     body: "Tours run Tuesday and Thursday at 9:30 AM and 4:00 PM. Request one through the front office, by phone, or via the 'Schedule a Tour' form on our website. Enrollment requires a completed application, signed contract, and up-to-date immunization records.",
     source: "Parent Handbook → Enrollment",
-    action: { label: "Schedule a tour", href: "https://flourishingflowers.example/schedule-tour" },
+    action: { label: "Schedule a tour", href: "/example" },
   },
   {
     id: "arrival",

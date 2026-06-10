@@ -133,7 +133,8 @@ export async function POST(req: NextRequest) {
       citations: response.citations.map((c) => c.id),
       modelUsed: !!key,
       latencyMs: Date.now() - t0,
-      question: question.slice(0, 120),
+      question: question.slice(0, 160),
+      answer: response.answer.slice(0, 280),
       at: new Date().toISOString(),
     })
   );

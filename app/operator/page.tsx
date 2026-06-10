@@ -91,10 +91,10 @@ export default function OperatorPage() {
   return (
     <div className="flex min-h-screen">
       {/* Foldable side panel */}
-      <aside className={`sticky top-0 h-screen shrink-0 border-r border-neutral-200 bg-white transition-all ${collapsed ? "w-14" : "w-56"}`}>
+      <aside className={`sticky top-0 h-screen shrink-0 border-r border-neutral-200 bg-white transition-all ${collapsed ? "w-14" : "w-14 md:w-56"}`}>
         <div className="flex items-center justify-between px-3 py-3">
-          {!collapsed && <div className="text-sm font-semibold">Control Center</div>}
-          <button onClick={() => setCollapsed((c) => !c)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100" title={collapsed ? "Expand" : "Collapse"}>
+          {!collapsed && <div className="hidden text-sm font-semibold md:block">Control Center</div>}
+          <button onClick={() => setCollapsed((c) => !c)} className="hidden rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 md:inline-flex" title={collapsed ? "Expand" : "Collapse"}>
             {collapsed ? "»" : "«"}
           </button>
         </div>
@@ -110,8 +110,8 @@ export default function OperatorPage() {
                 title={n.label}
               >
                 <span>{n.icon}</span>
-                {!collapsed && <span className="flex-1 text-left">{n.label}</span>}
-                {!collapsed && badge > 0 && <span className="rounded-full bg-rose-100 px-1.5 text-[10px] font-semibold text-rose-700">{badge}</span>}
+                {!collapsed && <span className="hidden flex-1 text-left md:inline">{n.label}</span>}
+                {!collapsed && badge > 0 && <span className="hidden rounded-full bg-rose-100 px-1.5 text-[10px] font-semibold text-rose-700 md:inline">{badge}</span>}
               </button>
             );
           })}
@@ -119,7 +119,7 @@ export default function OperatorPage() {
       </aside>
 
       {/* Main */}
-      <main className="min-w-0 flex-1 px-6 py-6">
+      <main className="min-w-0 flex-1 px-4 py-5 md:px-6 md:py-6">
         <header className="mb-6 flex items-center justify-between">
           <div>
             <div className="text-base font-semibold">{navTitle}</div>
@@ -153,7 +153,7 @@ export default function OperatorPage() {
                 <div className="space-y-2">
                   {queue.map((x) => (
                     <div key={x.id} className="rounded-xl border border-neutral-200 bg-white p-4">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <button onClick={() => setDetail(x)} className="min-w-0 flex-1 text-left">
                           <div className="flex items-center gap-2">
                             {x.contact?.urgency === "high" && <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700">URGENT</span>}
