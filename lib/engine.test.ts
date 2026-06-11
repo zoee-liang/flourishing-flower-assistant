@@ -87,5 +87,13 @@ describe("enforce — the deterministic safety guard", () => {
     expect(r.tier).toBe(1);
     expect(r.escalated).toBe(false);
     expect(r.answer).toBe("We're closed.");
+    expect(r.offerConnect).toBeFalsy(); // tier 1 never auto-offers a human
+  });
+
+  it("offers a human (actionable) on a tier-2 'should confirm' answer", () => {
+    const r = enforce("how do I enroll for the infant room?", verdict({ proposedTier: 2, citationIds: ["tours"], confidence: 0.7, answer: "Here's how enrollment works." }), SEED_KB);
+    expect(r.tier).toBe(2);
+    expect(r.escalated).toBe(false); // tier 2 is answered, not escalated
+    expect(r.offerConnect).toBe(true); // ...but the connect button is surfaced so the offer in the text is actionable
   });
 });

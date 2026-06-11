@@ -1,4 +1,5 @@
 import { DeskResponse, KBEntry, ModelVerdict, Tier } from "./types";
+import { CENTER } from "./seed";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Deterministic safety guard.
@@ -139,11 +140,13 @@ export function enforce(
     return { tier, intent: verdict.intent, answer, citations, confidence: verdict.confidence, escalated: true, guardReason, offerConnect: true };
   }
 
-  // 4) Otherwise honor the model's tier (1 or 2). Tier 2 appends a human offer.
+  // 4) Otherwise honor the model's tier (1 or 2). Tier 2 is answerable but
+  //    consequential, so we both invite a human confirmation in the text AND
+  //    surface the connect button (offerConnect) so the offer is actionable.
   if (tier === 2) {
-    answer = `${answer}\n\nWant me to have our director, Ms. Rivera, confirm the details for your family?`;
+    answer = `${answer}\n\nWant me to have our director, ${CENTER.director}, confirm the details for your family?`;
   }
-  return { tier, intent: verdict.intent, answer, citations, confidence: verdict.confidence, escalated: tier === 3, guardReason };
+  return { tier, intent: verdict.intent, answer, citations, confidence: verdict.confidence, escalated: tier === 3, guardReason, offerConnect: tier === 2 };
 }
 
 // The model supplies tone (a contextual, empathetic acknowledgment); the server
