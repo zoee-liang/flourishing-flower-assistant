@@ -40,7 +40,7 @@ function urgRank(x: AskLog) {
 const BLANK: KBEntry = { id: "", category: "General", title: "", body: "", source: "Operator-added", sensitive: false };
 
 export default function OperatorPage() {
-  const { kb, upsertEntry, deleteEntry, resetKb, log, resolveItem, restoreItem, stats } = useDesk();
+  const { kb, upsertEntry, deleteEntry, resetKb, log, resolveItem, restoreItem, markTaught, stats } = useDesk();
   const [nav, setNav] = useState<NavId>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [draft, setDraft] = useState<KBEntry | null>(null);
@@ -50,6 +50,8 @@ export default function OperatorPage() {
   const [category, setCategory] = useState("all");
   const [onlySensitive, setOnlySensitive] = useState(false);
   const highlightRef = useRef<HTMLDivElement>(null); // the selected Q&A inside the conversation
+  const [teachingFor, setTeachingFor] = useState<string | null>(null); // the request the editor was opened for
+  const [toast, setToast] = useState<{ policyId: string; archived: boolean; name?: string } | null>(null);
 
   const active = useMemo(
     () => log.filter((x) => (x.escalated || x.feedback === "down" || x.humanRequested) && !x.resolved),
@@ -84,7 +86,14 @@ export default function OperatorPage() {
     return () => clearTimeout(t);
   }, [detail]);
 
-  function startTeach(question: string) {
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 8000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  function startTeach(question: string, requestId?: string) {
+    setTeachingFor(requestId ?? null);
     setDraft({ ...BLANK, id: slug(question), title: question });
   }
   function save() {
@@ -92,7 +101,26 @@ export default function OperatorPage() {
     const e = { ...draft, id: draft.id || slug(draft.title) };
     if (!e.title.trim() || !e.body.trim()) return;
     upsertEntry(e);
+    if (teachingFor) {
+      const req = log.find((x) => x.id === teachingFor);
+      markTaught(teachingFor, e.id);
+      // No parent waiting → teaching resolves the gap, so auto-archive.
+      // Parent connected → keep it; they still need a human follow-up.
+      const archived = req ? !req.contact : false;
+      if (archived && req) resolveItem(req.id);
+      setToast({ policyId: e.id, archived, name: req?.contact?.name });
+      setTeachingFor(null);
+    }
     setDraft(null);
+  }
+
+  function openPolicy(policyId: string) {
+    const e = kb.find((k) => k.id === policyId);
+    if (e) {
+      setTeachingFor(null);
+      setNav("policies");
+      setDraft(e);
+    }
   }
 
   // Export every interaction as newline-delimited JSON (NDJSON) — the warehouse-
@@ -193,11 +221,12 @@ export default function OperatorPage() {
               ) : (
                 <div className="space-y-2">
                   {queue.map((x) => (
-                    <div key={x.id} className="rounded-xl border border-neutral-200 bg-white p-4">
+                    <div key={x.id} className={`rounded-xl border bg-white p-4 ${x.taughtPolicyId ? "border-emerald-200" : "border-neutral-200"}`}>
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <button onClick={() => setDetail(x)} className="min-w-0 flex-1 text-left">
                           <div className="flex items-center gap-2">
                             {x.contact?.urgency === "high" && <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700">URGENT</span>}
+                            {x.taughtPolicyId && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">✓ TAUGHT</span>}
                             <span className="truncate text-sm font-medium">{x.summary || x.question}</span>
                           </div>
                           <div className="mt-1 text-xs text-neutral-500">
@@ -206,10 +235,19 @@ export default function OperatorPage() {
                             <span className="text-neutral-400"> · {ago(x.at)}</span>
                             <span className="text-brand"> · view →</span>
                           </div>
+                          {x.taughtPolicyId && (
+                            <div className="mt-1 text-xs text-emerald-700">
+                              ✓ Taught Poppy this answer — {x.contact ? `follow up with ${x.contact.name}, then archive.` : "ready to archive."}
+                            </div>
+                          )}
                         </button>
                         <div className="flex shrink-0 gap-2">
-                          <button onClick={() => startTeach(x.question)} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white">Teach the answer</button>
-                          <button onClick={() => resolveItem(x.id)} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-50">Archive</button>
+                          {x.taughtPolicyId ? (
+                            <button onClick={() => openPolicy(x.taughtPolicyId!)} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-brand hover:bg-brand-soft">View policy</button>
+                          ) : (
+                            <button onClick={() => startTeach(x.question, x.id)} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white">Teach the answer</button>
+                          )}
+                          <button onClick={() => resolveItem(x.id)} className={`rounded-lg border px-3 py-1.5 text-xs ${x.taughtPolicyId ? "border-emerald-300 bg-emerald-50 font-medium text-emerald-700 hover:bg-emerald-100" : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"}`}>Archive</button>
                         </div>
                       </div>
                     </div>
@@ -306,7 +344,7 @@ export default function OperatorPage() {
               </label>
               <div className="ml-auto flex items-center gap-2 text-xs text-neutral-400">
                 {policies.length} of {kb.length}
-                <button onClick={() => setDraft({ ...BLANK })} className="rounded-lg border border-neutral-200 px-3 py-1.5 font-medium text-brand hover:bg-brand-soft">+ Add policy</button>
+                <button onClick={() => { setTeachingFor(null); setDraft({ ...BLANK }); }} className="rounded-lg border border-neutral-200 px-3 py-1.5 font-medium text-brand hover:bg-brand-soft">+ Add policy</button>
               </div>
             </div>
             {policies.length === 0 ? (
@@ -349,7 +387,10 @@ export default function OperatorPage() {
                   <div key={x.id} className="rounded-xl border border-neutral-200 bg-white p-4">
                     <div className="flex items-start justify-between gap-3">
                       <button onClick={() => setDetail(x)} className="min-w-0 flex-1 text-left">
-                        <div className="truncate text-sm font-medium">{x.summary || x.question}</div>
+                        <div className="flex items-center gap-2">
+                          {x.taughtPolicyId && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">✓ TAUGHT</span>}
+                          <span className="truncate text-sm font-medium">{x.summary || x.question}</span>
+                        </div>
                         <div className="mt-1 text-xs text-neutral-500">{reasonFor(x)}{x.contact && ` · ${x.contact.name}`} · {ago(x.at)}</div>
                       </button>
                       <button onClick={() => restoreItem(x.id)} className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">Restore</button>
@@ -378,7 +419,7 @@ export default function OperatorPage() {
 
       {/* Editor */}
       {draft && (
-        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/30 p-0 sm:items-center sm:p-6" onClick={() => setDraft(null)}>
+        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/30 p-0 sm:items-center sm:p-6" onClick={() => { setDraft(null); setTeachingFor(null); }}>
           <div className="w-full max-w-lg rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 text-sm font-semibold">{kb.some((x) => x.id === draft.id) ? "Edit policy" : "Teach a new policy"}</div>
             <Field label="Title (or the parent's question)">
@@ -400,7 +441,7 @@ export default function OperatorPage() {
               Mark as sensitive (health / safety / legal — the desk shares it but never makes the call)
             </label>
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setDraft(null)} className="rounded-lg px-4 py-2 text-sm text-neutral-500">Cancel</button>
+              <button onClick={() => { setDraft(null); setTeachingFor(null); }} className="rounded-lg px-4 py-2 text-sm text-neutral-500">Cancel</button>
               <button onClick={save} className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white">Save policy</button>
             </div>
           </div>
@@ -453,13 +494,30 @@ export default function OperatorPage() {
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => { startTeach(detail.question); setDetail(null); }} className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white">Teach the answer</button>
+              <button onClick={() => { startTeach(detail.question, detail.id); setDetail(null); }} className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white">Teach the answer</button>
               {detail.resolved ? (
                 <button onClick={() => { restoreItem(detail.id); setDetail(null); }} className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50">Restore</button>
               ) : (
                 <button onClick={() => { resolveItem(detail.id); setDetail(null); }} className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50">Archive</button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Teach confirmation toast */}
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 z-50 w-[92%] max-w-md -translate-x-1/2 rounded-xl border border-emerald-200 bg-white p-3 shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="text-lg">✅</div>
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-medium text-emerald-700">Taught Poppy this answer.</div>
+              <div className="mt-0.5 text-xs text-neutral-500">
+                {toast.archived ? "Request archived — it's handled." : `Kept in the queue — follow up with ${toast.name ?? "the parent"}, then archive.`}
+              </div>
+              <button onClick={() => openPolicy(toast.policyId)} className="mt-1 text-xs font-medium text-brand hover:underline">View policy →</button>
+            </div>
+            <button onClick={() => setToast(null)} className="shrink-0 text-xs text-neutral-400 hover:text-neutral-700">Dismiss</button>
           </div>
         </div>
       )}

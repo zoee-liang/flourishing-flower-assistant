@@ -22,6 +22,7 @@ type AskLog = {
   costUsd?: number; // estimated LLM cost for this interaction
   inputTokens?: number;
   outputTokens?: number;
+  taughtPolicyId?: string; // the KB entry created/updated from this request via "Teach"
 };
 
 type Ctx = {
@@ -35,6 +36,7 @@ type Ctx = {
   routeToHuman: (id: string, contact: Contact) => void; // parent confirmed + gave details
   resolveItem: (id: string) => void; // archive
   restoreItem: (id: string) => void; // un-archive
+  markTaught: (id: string, policyId: string) => void; // link a request to the policy it produced
   stats: {
     total: number;
     answered: number;
@@ -122,6 +124,8 @@ export function DeskProvider({ children }: { children: React.ReactNode }) {
     setLog((prev) => prev.map((x) => (x.id === id ? { ...x, resolved: true } : x)));
   const restoreItem = (id: string) =>
     setLog((prev) => prev.map((x) => (x.id === id ? { ...x, resolved: false } : x)));
+  const markTaught = (id: string, policyId: string) =>
+    setLog((prev) => prev.map((x) => (x.id === id ? { ...x, taughtPolicyId: policyId } : x)));
 
   const stats = useMemo(() => {
     const total = log.length;
@@ -154,6 +158,7 @@ export function DeskProvider({ children }: { children: React.ReactNode }) {
     routeToHuman,
     resolveItem,
     restoreItem,
+    markTaught,
     stats,
   };
   return <DeskContext.Provider value={value}>{children}</DeskContext.Provider>;
