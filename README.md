@@ -56,6 +56,32 @@ Routes: `/` (overview) · `/parent` (front desk) · `/operator` (control center)
 - Ask something not in the handbook → 🔴 it declines instead of guessing → appears in the
   operator's "struggled" inbox → teach it → ask again → 🟢
 
+## Testing & safety
+The safety-critical path is pure, deterministic logic, so it's unit-tested. Run `npm test`
+([`lib/engine.test.ts`](lib/engine.test.ts), Vitest). The suite covers the 3-tier guard —
+emergencies, the sensitive-judgment escalation, grounded vs. ungrounded answers — including the
+key case: **a confident, wrong model that proposes "Tier 1: Yes, bring her in" is overridden by
+the guard and forced to escalate.** The model proposes; the server decides.
+
+**On the keyword guard (a deliberate design choice).** The keyword screen is a *deterministic
+floor*, not the classifier — the LLM handles nuance and sets the tier; the guard guarantees the
+worst-case behavior regardless of what the model says, with a conservative bias (over-escalate,
+never under-escalate). It's cheap, auditable, and testable. To make it robust to paraphrasing
+without losing determinism, the next step is a semantic layer (embedding-similarity against
+curated "sensitive" seed phrases, or a temperature-0 classifier) combined with the keyword guard
+via OR-logic + a conservative default — keeping the *decision* reproducible (pinned model +
+fixed threshold) even with a probabilistic input, and growing the seed lists from the escalation
+logs we already collect.
+
+## Data collection (a data-engineering view)
+Every interaction is a structured, provenance-rich event: question, answer, tier, **confidence +
+escalation (uncertainty)**, **cited policies (provenance)**, feedback, contact, urgency, latency,
+and **token cost**. These stream to structured server logs (Vercel Runtime Logs) and can be
+exported as NDJSON from the operator (**⬇ Export**) — the warehouse-ready shape a pipeline would
+land in a `fact_interaction` table. Downstream this powers analytics (the Overview), evals (the
+thumbs-down + low-confidence set is a labeled dataset; the "Teach" flow is human-in-the-loop
+labeling), and cost/quality monitoring. It's append-only — *store artifacts, don't overwrite truth.*
+
 ## Scope (deliberately cut for a POC)
 No auth, one center, text only, in-browser state instead of a database, no PDF ingestion.
 The point is the trust model and the loop, not a production-grade AI assistant.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useDesk, AskLog } from "../providers";
 import { CENTER } from "@/lib/seed";
@@ -49,6 +49,7 @@ export default function OperatorPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [onlySensitive, setOnlySensitive] = useState(false);
+  const highlightRef = useRef<HTMLDivElement>(null); // the selected Q&A inside the conversation
 
   const active = useMemo(
     () => log.filter((x) => (x.escalated || x.feedback === "down" || x.humanRequested) && !x.resolved),
@@ -75,6 +76,13 @@ export default function OperatorPage() {
   const fbTotal = stats.thumbsUp + stats.thumbsDown;
   const positiveRate = fbTotal ? Math.round((stats.thumbsUp / fbTotal) * 100) : 0;
   const negativeRate = fbTotal ? Math.round((stats.thumbsDown / fbTotal) * 100) : 0;
+
+  // When a request is opened, jump straight to its Q&A in the full conversation.
+  useEffect(() => {
+    if (!detail) return;
+    const t = setTimeout(() => highlightRef.current?.scrollIntoView({ block: "center" }), 60);
+    return () => clearTimeout(t);
+  }, [detail]);
 
   function startTeach(question: string) {
     setDraft({ ...BLANK, id: slug(question), title: question });
@@ -403,12 +411,12 @@ export default function OperatorPage() {
       {detail && (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-6" onClick={() => setDetail(null)}>
           <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-sm font-semibold">{detail.summary || "Conversation detail"}</div>
+            <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-2 flex items-start justify-between gap-3 border-b border-neutral-200 bg-white px-5 pb-2 pt-5">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold">{detail.summary || "Conversation detail"}</div>
                 <div className="mt-0.5 text-xs text-neutral-500">{reasonFor(detail)} · {ago(detail.at)}</div>
               </div>
-              <button onClick={() => setDetail(null)} className="text-xs text-neutral-400 hover:text-neutral-700">Close</button>
+              <button onClick={() => setDetail(null)} className="shrink-0 rounded-md border border-neutral-200 px-2.5 py-1 text-xs text-neutral-600 hover:bg-neutral-50">Close</button>
             </div>
 
             <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm">
@@ -432,7 +440,7 @@ export default function OperatorPage() {
               <div className="mb-2 text-[11px] font-medium uppercase tracking-wide text-neutral-400">Full conversation</div>
               <div className="space-y-3">
                 {[...log].reverse().map((t) => (
-                  <div key={t.id} className={`rounded-lg p-2 ${t.id === detail.id ? "ring-1 ring-brand" : ""}`}>
+                  <div key={t.id} ref={t.id === detail.id ? highlightRef : undefined} className={`scroll-mt-16 rounded-lg p-2 ${t.id === detail.id ? "bg-brand-soft ring-1 ring-brand" : ""}`}>
                     <div className="flex justify-end">
                       <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-brand px-3 py-1.5 text-xs text-white">{t.question}</div>
                     </div>
