@@ -96,4 +96,14 @@ describe("enforce — the deterministic safety guard", () => {
     expect(r.escalated).toBe(false); // tier 2 is answered, not escalated
     expect(r.offerConnect).toBe(true); // ...but the connect button is surfaced so the offer in the text is actionable
   });
+
+  it("surfaces the connect button when the MODEL routes to tier 3 itself (grounded, non-emergency)", () => {
+    // Not an emergency, not a sensitive-judgment, grounded + confident — so it
+    // falls through to branch 4 with the model's own tier-3 call. The parent must
+    // still get a one-tap way to reach a person, not a dead-end "needs a person".
+    const r = enforce("my kid is really sad about starting daycare, what do I do?", verdict({ proposedTier: 3, citationIds: ["help-topics"], confidence: 0.7, answer: "That's a big transition for a little one." }), SEED_KB);
+    expect(r.tier).toBe(3);
+    expect(r.escalated).toBe(true);
+    expect(r.offerConnect).toBe(true); // the bug we fixed: tier-3 fall-through used to have no connect offer
+  });
 });

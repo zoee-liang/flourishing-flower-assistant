@@ -140,13 +140,17 @@ export function enforce(
     return { tier, intent: verdict.intent, answer, citations, confidence: verdict.confidence, escalated: true, guardReason, offerConnect: true };
   }
 
-  // 4) Otherwise honor the model's tier (1 or 2). Tier 2 is answerable but
-  //    consequential, so we both invite a human confirmation in the text AND
-  //    surface the connect button (offerConnect) so the offer is actionable.
+  // 4) Otherwise honor the model's tier (1, 2, or a non-emergency tier 3).
+  //    Anything above tier 1 gets an actionable connect button (offerConnect),
+  //    so a "needs a person" state is never a dead end. Tier 2 also invites a
+  //    human confirmation inline; a model-routed tier 3 (e.g. an emotional or
+  //    personal matter the model judged needs a human) keeps its message and
+  //    surfaces the button too. (Emergencies returned earlier with no button —
+  //    those point straight to 911, a faster path to a human than a callback.)
   if (tier === 2) {
     answer = `${answer}\n\nWant me to have our director, ${CENTER.director}, confirm the details for your family?`;
   }
-  return { tier, intent: verdict.intent, answer, citations, confidence: verdict.confidence, escalated: tier === 3, guardReason, offerConnect: tier === 2 };
+  return { tier, intent: verdict.intent, answer, citations, confidence: verdict.confidence, escalated: tier === 3, guardReason, offerConnect: tier !== 1 };
 }
 
 // The model supplies tone (a contextual, empathetic acknowledgment); the server
