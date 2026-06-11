@@ -45,12 +45,12 @@ export default function Home() {
       </div>
 
       <div className="mt-10 rounded-xl bg-brand-soft p-5 text-sm text-neutral-700">
-        <div className="font-semibold text-brand">Try the design on purpose</div>
+        <div className="font-semibold text-brand">Try the 3-tier design:</div>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>&ldquo;Are you open on Veterans Day?&rdquo; → answered, with a citation.</li>
-          <li>&ldquo;What&apos;s your fever policy?&rdquo; → the policy, grounded.</li>
+          <li>&ldquo;Are you open on Veterans Day?&rdquo; → Tier 1, answered, with a citation.</li>
+          <li>&ldquo;What&apos;s your fever policy?&rdquo; → Tier 2, the policy, grounded.</li>
           <li>
-            &ldquo;My child has a fever, can <em>they</em> come in?&rdquo; → it shares the policy but
+            &ldquo;My child has a fever, can they come in?&rdquo; → Tier 3, it shares the policy but
             refuses to make the call, and gets a human.
           </li>
         </ul>
